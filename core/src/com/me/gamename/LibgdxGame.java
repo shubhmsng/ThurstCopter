@@ -11,24 +11,30 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 
+import java.awt.event.HierarchyBoundsAdapter;
+
+import javax.swing.text.View;
+
 public class LibgdxGame extends ApplicationAdapter {
 	SpriteBatch batch;
 	Texture img, plane, gameOver;
     OrthographicCamera camera;
-    TextureRegion terrainAbove, terrainBelow, pillarUp, pillarDown, gem;
+    TextureRegion terrainAbove, terrainBelow, pillarUp, pillarDown, gem, rock;
     float terrainOffset = 0;
     Vector2 planePosition= new Vector2();
     Vector2 planeDefaultPosition= new Vector2();
     Vector2 touchPosition=new Vector2();
+    Vector2 touchPosition2 = new Vector2();
     Vector2 pillarPosition = new Vector2();
     Vector2 pillarPosition2 = new Vector2();
     Vector2 gemPosition = new Vector2();
+    Vector2 rockPosition= new Vector2();
     Music bg_music, game_over;
-    BitmapFont font,score, up, down ;
+    BitmapFont font,score, restart, close ;
 
 
 
-    private int Score = 0, time = 1000,high_score;
+    private int Score = 0,high_score=0;
 
     static enum GameState
     {
@@ -51,7 +57,7 @@ public class LibgdxGame extends ApplicationAdapter {
         gameOver = new Texture("GameOver.png");
         pillarUp = new TextureRegion((new Texture("piller1.png")));
         pillarDown = new TextureRegion(pillarUp);
-
+        rock = new TextureRegion(new Texture("rock.png"));
         gem = new TextureRegion(new Texture("gem.png"));
 
         bg_music = Gdx.audio.newMusic(Gdx.files.internal("BackGroundMusic .mp3"));
@@ -63,10 +69,11 @@ public class LibgdxGame extends ApplicationAdapter {
         font.setColor(Color.ROYAL);
         score = new BitmapFont(Gdx.files.internal("verdana39.fnt"), Gdx.files.internal("verdana39.png"), false);
         score.setColor(Color.GREEN);
-        up = new BitmapFont(Gdx.files.internal("verdana39.fnt"), Gdx.files.internal("verdana39.png"), false);
-        up.setColor(Color.CHARTREUSE);
-        down = new BitmapFont(Gdx.files.internal("verdana39.fnt"), Gdx.files.internal("verdana39.png"), false);
-        down.setColor(Color.CHARTREUSE);
+        restart = new BitmapFont(Gdx.files.internal("verdana39.fnt"), Gdx.files.internal("verdana39.png"), false);
+        restart.setColor(Color.CHARTREUSE);
+        close = new BitmapFont(Gdx.files.internal("verdana39.fnt"), Gdx.files.internal("verdana39.png"), false);
+        close.setColor(Color.CHARTREUSE);
+
         resetScene();
 	}
 
@@ -80,71 +87,95 @@ public class LibgdxGame extends ApplicationAdapter {
         float deltaTime = Gdx.graphics.getDeltaTime();
 
         if(Gdx.input.justTouched()){
-            if(gameState == GameState.INIT)
-            {
-                gameState = GameState.ACTION;
-                return;
-            }
-            if(gameState == GameState.GAME_OVER)
-            {
-
-                gameState = GameState.INIT;
-                resetScene();
-                return;
-            }
             touchPosition.set(Gdx.input.getX(), Gdx.input.getY());
-            if(touchPosition.x < 250)
-            {
+            if(gameState == GameState.INIT) {
+                    gameState = GameState.ACTION;
+                    return;
+            }
+            if(gameState == GameState.GAME_OVER) {
 
-                planePosition.y += 950*deltaTime;
+                    gameState = GameState.INIT;
+                    resetScene();
+                    return;
             }
-            else {
-                planePosition.y -= 950*deltaTime;
+                /*
+                touchPosition.set(Gdx.input.getX(), Gdx.input.getY());
+                if(touchPosition.x < 250)
+                {
+
+                    planePosition.y += 950*deltaTime;
+                }
+                else {
+                    planePosition.y -= 950*deltaTime;
+                }
+                */
+            if(gameState == GameState.INIT || gameState == GameState.GAME_OVER) {
+                    return;
             }
-            if(gameState == GameState.INIT || gameState == GameState.GAME_OVER)
-            {
-                return;
-            }
+        }
+        if(gameState != GameState.GAME_OVER && Gdx.input.isTouched()){
+            touchPosition2.set(Gdx.input.getX(), Gdx.input.getY());
+            planePosition.y = 480 - touchPosition2.y;
         }
         terrainOffset-=300*deltaTime;
         pillarPosition.x -= 300*deltaTime;
         pillarPosition2.x -= 300*deltaTime;
         gemPosition.x -= 300*deltaTime;
-        time -= 1*deltaTime;
+        rockPosition.x -= 300*deltaTime;
         if(terrainOffset < -800)
         {
             terrainOffset = 0;
         }
         if(pillarPosition.x < 0){
-            pillarPosition.x = (float)(800+ Math.random()*600);
+            pillarPosition.x = (float)(800+ Math.random()*1500);
             pillarPosition.y = (float)(230 + (130/(Math.random()*50)));
         }
         if(pillarPosition2.x < 0){
-            pillarPosition2.x = (float)(900+Math.random()*550);
+            pillarPosition2.x = (float)(900+Math.random()*2500);
             pillarPosition2.y = (float)(50 - (130/(Math.random()*50)));
         }
         if(Math.abs(planePosition.x - gemPosition.x) < 130 && Math.abs(planePosition.y - gemPosition.y) < 40){
-                gemPosition.x = (float)(950+Math.random()*100);
-                gemPosition.y = (float) (100 + Math.random()*(200));
+                gemPosition.x = (float)(950+Math.random()*1000);
+                gemPosition.y = (float) (100 + Math.random()*(100));
                 Score += 100;
-                time += 800;
         }
         if(gemPosition.x < 0){
-            gemPosition.x = (float)(950+Math.random()*100);
-            gemPosition.y = (float) (100 + Math.random()*(200));
+            gemPosition.x = (float)(950+Math.random()*1000);
+            gemPosition.y = (float) (100 + Math.random()*(100));
+        }
+        if(rockPosition.x < -(Math.random()*3000)){
+            if(pillarPosition2.x >= pillarPosition.x){
+                rockPosition.x = (float)(pillarPosition2.x + Math.random()*1030);
+            }
+            else{
+                rockPosition.x = (float)(pillarPosition.x + Math.random()*1030);
+            }
         }
         if(Math.abs(pillarPosition.x - planePosition.x) < 45 && Math.abs(pillarPosition.y - planePosition.y) < 50){
             if(gameState != GameState.GAME_OVER)
             {
                 gameState = GameState.GAME_OVER;
-                high_score = Score;
+                if(Score > high_score){
+                    high_score = Score;
+                }
             }
         }
         if(Math.abs(pillarPosition2.x - planePosition.x) < 45 && Math.abs(pillarPosition2.y - planePosition.y) < 110){
             if(gameState != GameState.GAME_OVER)
             {
                 gameState = GameState.GAME_OVER;
-                high_score = Score;
+                if(Score > high_score){
+                    high_score = Score;
+                }
+            }
+        }
+        if(Math.abs(rockPosition.x - planePosition.x) < 60 &&  Math.abs(planePosition.y - rockPosition.y) < 40){
+            if(gameState != GameState.GAME_OVER)
+            {
+                gameState = GameState.GAME_OVER;
+                if(Score > high_score){
+                    high_score = Score;
+                }
             }
         }
         if(planePosition.y < 50)
@@ -152,23 +183,21 @@ public class LibgdxGame extends ApplicationAdapter {
             if(gameState != GameState.GAME_OVER)
             {
                 gameState = GameState.GAME_OVER;
-                high_score = Score;
+                if(Score > high_score){
+                    high_score = Score;
+                }
             }
         }
         if(planePosition.y > 290){
             if(gameState != GameState.GAME_OVER)
             {
                 gameState = GameState.GAME_OVER;
-                high_score = Score;
+                if(Score > high_score){
+                    high_score = Score;
+                }
             }
         }
-        if(time == 0){
-            if(gameState != GameState.GAME_OVER)
-            {
-                gameState = GameState.GAME_OVER;
-                high_score = Score;
-            }
-        }
+
         if(gameState == GameState.GAME_OVER){
             bg_music.stop();
             game_over.play();
@@ -197,20 +226,18 @@ public class LibgdxGame extends ApplicationAdapter {
                 getRegionWidth(), 400 - terrainAbove.getRegionHeight());
         batch.draw(plane, planePosition.x, planePosition.y);
         batch.draw(gem, gemPosition.x, gemPosition.y);
-
-        if(gameState == GameState.GAME_OVER){
+        batch.draw(rock, rockPosition.x, rockPosition.y);
+        if(gameState == GameState.GAME_OVER) {
             resetScene();
             batch.draw(gameOver, 250, 150);
-            font.draw(batch, "Score : "+Integer.toString(high_score), 280,280);
-
+            score.draw(batch, "Score :" + Integer.toString(high_score), 20, 120);
+            font.draw(batch,"High Score :"+Integer.toString(high_score), 350, 120);
         }
         if(gameState != GameState.GAME_OVER) {
-            font.draw(batch, "Time Left : " + Integer.toString(time), 350, 400);
-            score.draw(batch, "Score :"+Integer.toString(Score), 20, 400);
-        }
 
-        up.draw(batch, "Up", 20, 50);
-        down.draw(batch, "Down", 600, 50);
+            score.draw(batch, "Score :" + Integer.toString(Score), 20, 400);
+            font.draw(batch, "High Score :" + Integer.toString(high_score), 350, 400);
+        }
         batch.end();
     }
 
@@ -218,12 +245,11 @@ public class LibgdxGame extends ApplicationAdapter {
     {
             terrainOffset=0;
             Score = 0;
-            time = 1000;
             pillarPosition.set(850, 230);
             pillarPosition2.set(1020, 50);
+            rockPosition.set(4632, 150);
             gemPosition.set(910, 120);
             planeDefaultPosition.set(100, 200);
             planePosition.set(planeDefaultPosition.x, planeDefaultPosition.y);
     }
-
 }
