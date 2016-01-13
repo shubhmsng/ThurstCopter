@@ -155,27 +155,21 @@ public class LibgdxGame extends ApplicationAdapter {
             if(gameState != GameState.GAME_OVER)
             {
                 gameState = GameState.GAME_OVER;
-                if(Score > high_score){
-                    high_score = Score;
-                }
+
             }
         }
         if(Math.abs(pillarPosition2.x - planePosition.x) < 45 && Math.abs(pillarPosition2.y - planePosition.y) < 110){
             if(gameState != GameState.GAME_OVER)
             {
                 gameState = GameState.GAME_OVER;
-                if(Score > high_score){
-                    high_score = Score;
-                }
+
             }
         }
         if(Math.abs(rockPosition.x - planePosition.x) < 60 &&  Math.abs(planePosition.y - rockPosition.y) < 40){
             if(gameState != GameState.GAME_OVER)
             {
                 gameState = GameState.GAME_OVER;
-                if(Score > high_score){
-                    high_score = Score;
-                }
+
             }
         }
         if(planePosition.y < 50)
@@ -183,19 +177,18 @@ public class LibgdxGame extends ApplicationAdapter {
             if(gameState != GameState.GAME_OVER)
             {
                 gameState = GameState.GAME_OVER;
-                if(Score > high_score){
-                    high_score = Score;
-                }
+
             }
         }
         if(planePosition.y > 290){
             if(gameState != GameState.GAME_OVER)
             {
                 gameState = GameState.GAME_OVER;
-                if(Score > high_score){
-                    high_score = Score;
-                }
+
             }
+        }
+        if(Score > high_score){
+            high_score = Score;
         }
 
         if(gameState == GameState.GAME_OVER){
