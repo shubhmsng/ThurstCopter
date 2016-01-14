@@ -11,13 +11,9 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 
-import java.awt.event.HierarchyBoundsAdapter;
-
-import javax.swing.text.View;
-
 public class LibgdxGame extends ApplicationAdapter {
 	SpriteBatch batch;
-	Texture img, plane, gameOver;
+	Texture img, plane, gameOver, Timer;
     OrthographicCamera camera;
     TextureRegion terrainAbove, terrainBelow, pillarUp, pillarDown, gem, rock;
     float terrainOffset = 0;
@@ -32,9 +28,8 @@ public class LibgdxGame extends ApplicationAdapter {
     Music bg_music, game_over;
     BitmapFont font,score, restart, close ;
 
-
-
-    private int Score = 0,high_score=0;
+    private int Score ,high_score = 0, curr_score;
+    float timer;
 
     static enum GameState
     {
@@ -59,6 +54,7 @@ public class LibgdxGame extends ApplicationAdapter {
         pillarDown = new TextureRegion(pillarUp);
         rock = new TextureRegion(new Texture("rock.png"));
         gem = new TextureRegion(new Texture("gem.png"));
+        Timer = new Texture("timer.png");
 
         bg_music = Gdx.audio.newMusic(Gdx.files.internal("BackGroundMusic .mp3"));
         bg_music.setLooping(true);
@@ -122,6 +118,7 @@ public class LibgdxGame extends ApplicationAdapter {
         pillarPosition2.x -= 300*deltaTime;
         gemPosition.x -= 300*deltaTime;
         rockPosition.x -= 300*deltaTime;
+        timer -= 1*deltaTime;
         if(terrainOffset < -800)
         {
             terrainOffset = 0;
@@ -138,6 +135,7 @@ public class LibgdxGame extends ApplicationAdapter {
                 gemPosition.x = (float)(950+Math.random()*1000);
                 gemPosition.y = (float) (100 + Math.random()*(100));
                 Score += 100;
+                timer += 5;
         }
         if(gemPosition.x < 0){
             gemPosition.x = (float)(950+Math.random()*1000);
@@ -155,21 +153,28 @@ public class LibgdxGame extends ApplicationAdapter {
             if(gameState != GameState.GAME_OVER)
             {
                 gameState = GameState.GAME_OVER;
-
+                curr_score = Score;
             }
         }
         if(Math.abs(pillarPosition2.x - planePosition.x) < 45 && Math.abs(pillarPosition2.y - planePosition.y) < 110){
             if(gameState != GameState.GAME_OVER)
             {
                 gameState = GameState.GAME_OVER;
-
+                curr_score = Score;
             }
         }
         if(Math.abs(rockPosition.x - planePosition.x) < 60 &&  Math.abs(planePosition.y - rockPosition.y) < 40){
             if(gameState != GameState.GAME_OVER)
             {
                 gameState = GameState.GAME_OVER;
-
+                curr_score = Score;
+            }
+        }
+        if(timer < 1 ){
+            if(gameState != GameState.GAME_OVER)
+            {
+                gameState = GameState.GAME_OVER;
+                curr_score = Score;
             }
         }
         if(planePosition.y < 50)
@@ -177,14 +182,14 @@ public class LibgdxGame extends ApplicationAdapter {
             if(gameState != GameState.GAME_OVER)
             {
                 gameState = GameState.GAME_OVER;
-
+                curr_score = Score;
             }
         }
         if(planePosition.y > 290){
             if(gameState != GameState.GAME_OVER)
             {
                 gameState = GameState.GAME_OVER;
-
+                curr_score = Score;
             }
         }
         if(Score > high_score){
@@ -200,7 +205,6 @@ public class LibgdxGame extends ApplicationAdapter {
             game_over.stop();
             bg_music.play();
         }
-
     }
 
     public void drawScene(){
@@ -223,21 +227,25 @@ public class LibgdxGame extends ApplicationAdapter {
         if(gameState == GameState.GAME_OVER) {
             resetScene();
             batch.draw(gameOver, 250, 150);
-            score.draw(batch, "Score :" + Integer.toString(high_score), 20, 120);
+            score.draw(batch, "Score :" + Integer.toString(curr_score), 20, 120);
             font.draw(batch,"High Score :"+Integer.toString(high_score), 350, 120);
         }
         if(gameState != GameState.GAME_OVER) {
 
             score.draw(batch, "Score :" + Integer.toString(Score), 20, 400);
             font.draw(batch, "High Score :" + Integer.toString(high_score), 350, 400);
+            font.draw(batch,Integer.toString((int)timer),70,40);
+            batch.draw(Timer, 20, 5);
         }
         batch.end();
+
     }
 
     private void resetScene()
     {
             terrainOffset=0;
             Score = 0;
+            timer = 5;
             pillarPosition.set(850, 230);
             pillarPosition2.set(1020, 50);
             rockPosition.set(4632, 150);
